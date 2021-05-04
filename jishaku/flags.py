@@ -32,7 +32,7 @@ JISHAKU_RETAIN = enabled("JISHAKU_RETAIN")
 
 # Flag to indicate that meta variables in REPL should not be prefixed with an underscore
 JISHAKU_NO_UNDERSCORE = enabled("JISHAKU_NO_UNDERSCORE")
-SCOPE_PREFIX = '' if JISHAKU_NO_UNDERSCORE else '_'
+SCOPE_PREFIX = ''
 
 # Flag to indicate verbose error tracebacks should be sent to the invoking channel as opposed to via direct message.
 JISHAKU_NO_DM_TRACEBACK = enabled("JISHAKU_NO_DM_TRACEBACK")
