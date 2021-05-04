@@ -92,7 +92,16 @@ def get_var_dict_from_ctx(ctx: commands.Context, prefix: str = '_'):
         'http_post_bytes': http_post_bytes,
         'http_post_json': http_post_json,
         'message': ctx.message,
-        'msg': ctx.message
+        'msg': ctx.message,
+        '_author': ctx.author,
+        '_bot': ctx.bot,
+        '_channel': ctx.channel,
+        '_ctx': ctx,
+        '_find': discord.utils.find,
+        '_get': discord.utils.get,
+        '_guild': ctx.guild,
+        '_message': ctx.message,
+        '_msg': ctx.message
     }
 
     return {f'{prefix}{k}': v for k, v in raw_var_dict.items()}
