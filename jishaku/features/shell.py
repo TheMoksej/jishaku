@@ -66,4 +66,4 @@ class ShellFeature(Feature):
         Shortcut for 'jsk sh pip'. Invokes the system shell.
         """
 
-        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip " + argument.content))
+        return await ctx.invoke(self.jsk_shell, argument=Codeblock(argument.language, "pip3.9 " + argument.content))
