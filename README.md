@@ -1,7 +1,6 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/jishaku.svg)](https://pypi.python.org/pypi/jishaku)
 [![License](https://img.shields.io/pypi/l/jishaku.svg)](https://github.com/Gorialis/jishaku/blob/master/LICENSE)
 [![Status](https://img.shields.io/pypi/status/jishaku.svg)](https://pypi.python.org/pypi/jishaku)
-[![Travis CI](https://img.shields.io/travis/Gorialis/jishaku/master.svg?label=TravisCI)](https://travis-ci.org/Gorialis/jishaku)
 [![Circle CI](https://img.shields.io/circleci/project/github/Gorialis/jishaku/master.svg?label=CircleCI)](https://circleci.com/gh/Gorialis/jishaku)
 [![AppVeyor CI](https://img.shields.io/appveyor/ci/Gorialis/jishaku.svg?label=AppVeyorCI)](https://ci.appveyor.com/project/Gorialis/jishaku)
 [![Issues](https://img.shields.io/github/issues/Gorialis/jishaku.svg?colorB=3333ff)](https://github.com/Gorialis/jishaku/issues)
@@ -143,6 +142,9 @@ You can also import the module to use the command development utilities.
             On Windows, jishaku will use PowerShell if it's detected, otherwise, it will use Command Prompt.
             <br><br>
             The results from the commands you pass in are returned through a paginator interface live as the command runs. If you need to stop a command, you can press the stop button reaction, or use <code>jsk cancel</code>.
+            <br><br>
+            The execution will terminate automatically if no output is produced for 120 seconds.
+            <br><br>
             <h4>&gt; <code>jishaku git &lt;argument&gt;</code></h4>
             <h4>&gt; <code>jishaku pip &lt;argument&gt;</code></h4>
             These commands act as shortcuts to the shell command, so you can save typing a word if you use these frequently.
@@ -166,8 +168,10 @@ You can also import the module to use the command development utilities.
             <code>jsk reload ~</code> will reload all extensions on your bot.
             <br><br>
             You can load, reload, or unload multiple extensions at once: <code>jsk reload cogs.one cogs.two</code>
+            <br><br>
             <h4>&gt; <code>jishaku shutdown</code></h4>
             This command gracefully shuts down your bot.
+            <br><br>
             <h4>&gt; <code>jishaku rtt</code></h4>
             This command calculates <a href="https://en.wikipedia.org/wiki/Round-trip_delay">Round-Trip Time</a> for your bot to the API. It does this by calculating response time samples, so you can tell if your bot is being slow or not.
             <br><br>
@@ -216,6 +220,11 @@ You can also import the module to use the command development utilities.
             <code>jishaku debug</code> executes a command with an exception wrapper and a timer. This allows you to quickly get feedback on reproducable command errors and slowdowns.
             <br><br>
             <code>jishaku repeat</code> repeats a command a number of times.
+            <br><br>
+            <h4>&gt; <code>jishaku permtrace &lt;channel&gt; [targets...]</code></h4>
+            This command allows you to investigate the source of expressed permissions in a given channel. Targets can be either a member, or a list of roles (to simulate a member with those roles). 
+            <br><br>
+            It will read all of the guild permissions and channel overwrites for the given member or roles in the channel, and provide a breakdown containing whether the permission is granted, and the most fundamental reason why.
             <br><br>
         </td>
     </tr>

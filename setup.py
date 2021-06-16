@@ -25,6 +25,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
+import os
 import pathlib
 import re
 import subprocess
@@ -72,8 +73,22 @@ try:
         COMMIT_HASH, ERR = PROCESS.communicate()
 
         if COMMIT_HASH:
-            if VERSION.endswith(('a', 'b', 'rc')):
-                VERSION += COMMIT_COUNT.decode('utf-8').strip() + '+' + COMMIT_HASH.decode('utf-8').strip()
+            match = re.match(r'(\d).(\d).(\d)(a|b|rc)?', os.getenv('tag_name') or "")
+
+            if (match and match[4]) or not match:
+                VERSION += ('' if match else 'a') + COMMIT_COUNT.decode('utf-8').strip() + '+g' + COMMIT_HASH.decode('utf-8').strip()
+
+                # Also attempt to retrieve a branch, when applicable
+                PROCESS = subprocess.Popen(
+                    ['git', 'symbolic-ref', '-q', '--short', 'HEAD'],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE
+                )
+
+                COMMIT_BRANCH, ERR = PROCESS.communicate()
+
+                if COMMIT_BRANCH:
+                    VERSION += "." + re.sub('[^a-zA-Z0-9.]', '.', COMMIT_BRANCH.decode('utf-8').strip())
 
 except FileNotFoundError:
     pass
@@ -91,6 +106,7 @@ setup(
     license='MIT',
     description='A discord.py extension including useful tools for bot development and debugging.',
     long_description=README,
+    long_description_content_type='text/markdown',
     project_urls={
         'Documentation': 'https://jishaku.readthedocs.io/en/latest/',
         'Code': 'https://github.com/Gorialis/jishaku',

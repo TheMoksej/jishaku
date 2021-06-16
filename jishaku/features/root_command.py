@@ -20,7 +20,6 @@ from discord.ext import commands
 
 from jishaku.features.baseclass import Feature
 from jishaku.flags import JISHAKU_HIDE
-from jishaku.meta import __version__
 from jishaku.modules import package_version
 from jishaku.paginators import PaginatorInterface
 
@@ -37,7 +36,7 @@ class RootCommand(Feature):
 
     @Feature.Command(name="jishaku", aliases=["jsk"], hidden=JISHAKU_HIDE,
                      invoke_without_command=True, ignore_extra=False)
-    async def jsk(self, ctx: commands.Context):
+    async def jsk(self, ctx: commands.Context):  # pylint: disable=too-many-branches
         """
         The Jishaku debug and diagnostic commands.
 
@@ -46,7 +45,7 @@ class RootCommand(Feature):
         """
 
         summary = [
-            f"Jishaku v{__version__}, discord.py `{package_version('discord.py')}`, "
+            f"Jishaku v{package_version('jishaku')}, discord.py `{package_version('discord.py')}`, "
             f"`Python {sys.version}` on `{sys.platform}`".replace("\n", ""),
             f"Module was loaded {humanize.naturaltime(self.load_time)}, "
             f"cog was loaded {humanize.naturaltime(self.start_time)}.",
@@ -88,9 +87,22 @@ class RootCommand(Feature):
 
         # Show shard settings to summary
         if isinstance(self.bot, discord.AutoShardedClient):
-            summary.append(f"This bot is automatically sharded and can see {cache_summary}.")
+            if len(self.bot.shards) > 20:
+                summary.append(
+                    f"This bot is automatically sharded ({len(self.bot.shards)} shards of {self.bot.shard_count})"
+                    f" and can see {cache_summary}."
+                )
+            else:
+                shard_ids = ', '.join(str(i) for i in self.bot.shards.keys())
+                summary.append(
+                    f"This bot is automatically sharded (Shards {shard_ids} of {self.bot.shard_count})"
+                    f" and can see {cache_summary}."
+                )
         elif self.bot.shard_count:
-            summary.append(f"This bot is manually sharded and can see {cache_summary}.")
+            summary.append(
+                f"This bot is manually sharded (Shard {self.bot.shard_id} of {self.bot.shard_count})"
+                f" and can see {cache_summary}."
+            )
         else:
             summary.append(f"This bot is not sharded and can see {cache_summary}.")
 
