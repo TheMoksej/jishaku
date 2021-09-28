@@ -110,7 +110,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     RETAIN: bool
 
     # Flag to indicate that meta variables in REPL should not be prefixed with an underscore
-    NO_UNDERSCORE: bool
+    NO_UNDERSCORE: bool = True
 
     # The scope prefix, i.e. the prefix that appears before Jishaku's builtin variables in REPL sessions.
     # It is recommended that you set this programatically.
