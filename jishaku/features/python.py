@@ -19,9 +19,9 @@ from discord.ext import commands
 from jishaku.codeblocks import codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
-from jishaku.flags import JISHAKU_RETAIN, SCOPE_PREFIX
+from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
-from jishaku.paginators import PaginatorInterface, WrappedPaginator
+from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
 from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, disassemble, get_var_dict_from_ctx
 
 
@@ -33,7 +33,7 @@ class PythonFeature(Feature):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._scope = Scope()
-        self.retain = JISHAKU_RETAIN
+        self.retain = Flags.RETAIN
         self.last_result = None
 
     @property
@@ -77,13 +77,63 @@ class PythonFeature(Feature):
         self.retain = False
         return await ctx.send("Variable retention is OFF. Future REPL sessions will dispose their scope when done.")
 
+    async def jsk_python_result_handling(self, ctx: commands.Context, result):  # pylint: disable=too-many-return-statements
+        """
+        Determines what is done with a result when it comes out of jsk py.
+        This allows you to override how this is done without having to rewrite the command itself.
+        What you return is what gets stored in the temporary _ variable.
+        """
+
+        if isinstance(result, discord.Message):
+            return await ctx.send(f"<Message <{result.jump_url}>>")
+
+        if isinstance(result, discord.File):
+            return await ctx.send(file=result)
+
+        if isinstance(result, discord.Embed):
+            return await ctx.send(embed=result)
+
+        if isinstance(result, PaginatorInterface):
+            return await result.send_to(ctx)
+
+        if not isinstance(result, str):
+            # repr all non-strings
+            result = repr(result)
+
+        # Eventually the below handling should probably be put somewhere else
+        if len(result) <= 2000:
+            if result.strip() == '':
+                result = "\u200b"
+
+            return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+
+        if use_file_check(ctx, len(result)):  # File "full content" preview limit
+            # Discord's desktop and web client now supports an interactive file content
+            #  display for files encoded in UTF-8.
+            # Since this avoids escape issues and is more intuitive than pagination for
+            #  long results, it will now be prioritized over PaginatorInterface if the
+            #  resultant content is below the filesize threshold
+            return await ctx.send(file=discord.File(
+                filename="output.py",
+                fp=io.BytesIO(result.encode('utf-8'))
+            ))
+
+        # inconsistency here, results get wrapped in codeblocks when they are too large
+        #  but don't if they're not. probably not that bad, but noting for later review
+        paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
+
+        paginator.add_line(result)
+
+        interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
+        return await interface.send_to(ctx)
+
     @Feature.Command(parent="jsk", name="py", aliases=["python"])
     async def jsk_python(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Direct evaluation of Python code.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -98,43 +148,7 @@ class PythonFeature(Feature):
 
                         self.last_result = result
 
-                        if isinstance(result, discord.File):
-                            send(await ctx.send(file=result))
-                        elif isinstance(result, discord.Embed):
-                            send(await ctx.send(embed=result))
-                        elif isinstance(result, PaginatorInterface):
-                            send(await result.send_to(ctx))
-                        else:
-                            if not isinstance(result, str):
-                                # repr all non-strings
-                                result = repr(result)
-
-                            if len(result) <= 2000:
-                                if result.strip() == '':
-                                    result = "\u200b"
-
-                                send(await ctx.send(result.replace(self.bot.http.token, "[token omitted]")))
-
-                            elif len(result) < 50_000:  # File "full content" preview limit
-                                # Discord's desktop and web client now supports an interactive file content
-                                #  display for files encoded in UTF-8.
-                                # Since this avoids escape issues and is more intuitive than pagination for
-                                #  long results, it will now be prioritized over PaginatorInterface if the
-                                #  resultant content is below the filesize threshold
-                                send(await ctx.send(file=discord.File(
-                                    filename="output.py",
-                                    fp=io.BytesIO(result.encode('utf-8'))
-                                )))
-
-                            else:
-                                # inconsistency here, results get wrapped in codeblocks when they are too large
-                                #  but don't if they're not. probably not that bad, but noting for later review
-                                paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1985)
-
-                                paginator.add_line(result)
-
-                                interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-                                send(await interface.send_to(ctx))
+                        send(await self.jsk_python_result_handling(ctx, result))
 
         finally:
             scope.clear_intersection(arg_dict)
@@ -145,7 +159,7 @@ class PythonFeature(Feature):
         Evaluation of Python code with inspect information.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
         arg_dict["_"] = self.last_result
 
         scope = self.scope
@@ -169,7 +183,7 @@ class PythonFeature(Feature):
 
                         text = "\n".join(lines)
 
-                        if len(text) < 50_000:  # File "full content" preview limit
+                        if use_file_check(ctx, len(text)):  # File "full content" preview limit
                             send(await ctx.send(file=discord.File(
                                 filename="inspection.prolog",
                                 fp=io.BytesIO(text.encode('utf-8'))
@@ -190,12 +204,12 @@ class PythonFeature(Feature):
         Disassemble Python code into bytecode.
         """
 
-        arg_dict = get_var_dict_from_ctx(ctx, SCOPE_PREFIX)
+        arg_dict = get_var_dict_from_ctx(ctx, Flags.SCOPE_PREFIX)
 
         async with ReplResponseReactor(ctx.message):
             text = "\n".join(disassemble(argument.content, arg_dict=arg_dict))
 
-            if len(text) < 50_000:  # File "full content" preview limit
+            if use_file_check(ctx, len(text)):  # File "full content" preview limit
                 await ctx.send(file=discord.File(
                     filename="dis.py",
                     fp=io.BytesIO(text.encode('utf-8'))
