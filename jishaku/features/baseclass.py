@@ -28,7 +28,7 @@ __all__ = (
 CommandTask = collections.namedtuple("CommandTask", "index ctx task")
 
 
-class Feature(commands.Cog):
+class Feature(commands.Cog, command_attrs={"slash_command": False}):
     """
     Baseclass defining feature components of the jishaku cog.
     """
