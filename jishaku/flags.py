@@ -104,7 +104,7 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     """
 
     # Flag to indicate the Jishaku base command group should be hidden
-    HIDE: bool
+    HIDE: bool = True
 
     # Flag to indicate that retention mode for REPL should be enabled by default
     RETAIN: bool

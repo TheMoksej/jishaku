@@ -42,10 +42,9 @@ class Feature(commands.Cog):
         :param standalone_ok: Whether the command should be allowed to be standalone if its parent isn't found.
         """
 
-        def __init__(self, parent: str = None, standalone_ok: bool = False, slash_command: bool = False, **kwargs):
+        def __init__(self, parent: str = None, standalone_ok: bool = False, **kwargs):
             self.parent: typing.Union[str, Feature.Command] = parent
             self.standalone_ok = standalone_ok
-            self.slash_command = slash_command
             self.kwargs = kwargs
             self.callback = None
             self.depth: int = 0
