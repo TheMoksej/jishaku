@@ -19,6 +19,8 @@ from discord.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
+from typing import Union
+
 
 class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
     """
@@ -282,7 +284,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             else:
                 await self.message.edit(view=None)
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, item: Union[discord.ui.Button, discord.ui.Select], interaction: discord.Interaction):
         """Check that determines whether this interaction should be honored"""
         return not self.owner or interaction.user.id == self.owner.id
 
