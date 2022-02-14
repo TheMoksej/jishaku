@@ -30,8 +30,7 @@ class DefaultPaginatorHelp(commands.DefaultHelpCommand):
         destination = self.get_destination()
 
         interface = PaginatorInterface(self.context.bot, self.paginator, owner=self.context.author)
-        await interface.send_to(destination)
-
+        
 
 class DefaultEmbedPaginatorHelp(commands.DefaultHelpCommand):
     """
@@ -42,7 +41,7 @@ class DefaultEmbedPaginatorHelp(commands.DefaultHelpCommand):
         destination = self.get_destination()
 
         interface = PaginatorEmbedInterface(self.context.bot, self.paginator, owner=self.context.author)
-        await interface.send_to(destination)
+        
 
 
 class MinimalPaginatorHelp(commands.MinimalHelpCommand):
@@ -59,7 +58,7 @@ class MinimalPaginatorHelp(commands.MinimalHelpCommand):
         destination = self.get_destination()
 
         interface = PaginatorInterface(self.context.bot, self.paginator, owner=self.context.author)
-        await interface.send_to(destination)
+        
 
 
 class MinimalEmbedPaginatorHelp(commands.MinimalHelpCommand):
@@ -71,4 +70,4 @@ class MinimalEmbedPaginatorHelp(commands.MinimalHelpCommand):
         destination = self.get_destination()
 
         interface = PaginatorEmbedInterface(self.context.bot, self.paginator, owner=self.context.author)
-        await interface.send_to(destination)
+        
