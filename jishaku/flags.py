@@ -32,6 +32,7 @@ class Flag:
     name: str
     flag_type: type
     default: typing.Callable = None
+    handler: typing.Callable = None
     override: typing.Any = None
 
     def resolve_raw(self, flags):  # pylint: disable=too-many-return-statements
