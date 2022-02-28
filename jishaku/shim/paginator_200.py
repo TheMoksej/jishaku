@@ -19,6 +19,8 @@ from discord.ext import commands
 
 from jishaku.shim.paginator_base import EMOJI_DEFAULT
 
+from typing import Union
+
 
 class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attributes
     """
@@ -150,7 +152,9 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         """
 
         content = self.pages[self.display_page]
-        return {'content': content, 'view': self}
+        buttons = self
+        buttons.children = self.disable_view()
+        return {'content': content, 'view': buttons}
 
     def update_view(self):
         """
@@ -164,6 +168,29 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         self.button_next.label = self.emojis.forward
         self.button_last.label = f"{self.emojis.end} \u200b {self.page_count}"
         self.button_close.label = f"{self.emojis.close} \u200b Close paginator"
+
+    def disable_view(self):
+        """
+        Disables the buttons that cannot be used to navigate.
+        """
+        current_page = self.display_page + 1
+        max_pages = self.page_count
+        for _ in self.children:
+            if current_page == 1:
+                self.button_start.disabled = True
+                self.button_previous.disabled = True
+            if (current_page + 1) != max_pages:
+                self.button_last.disabled = False
+            if current_page > 2:
+                self.button_start.disabled = False
+            if current_page == max_pages:
+                self.button_next.disabled = True
+                self.button_last.disabled = True
+            if current_page >= 2:
+                self.button_previous.disabled = False
+            if current_page != max_pages:
+                self.button_next.disabled = False
+        return self.children
 
     async def add_line(self, *args, **kwargs):
         """
@@ -259,7 +286,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
             else:
                 await self.message.edit(view=None)
 
-    async def interaction_check(self, interaction: discord.Interaction):
+    async def interaction_check(self, item: Union[discord.ui.Button, discord.ui.Select], interaction: discord.Interaction):
         """Check that determines whether this interaction should be honored"""
         return not self.owner or interaction.user.id == self.owner.id
 

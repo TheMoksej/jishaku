@@ -45,6 +45,8 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):  # pylint: disable=too-fe
     """
     The frontend subclass that mixes in to form the final Jishaku cog.
     """
+    help_icon = ''
+    big_icon = ''
 
 
 def setup(bot: commands.Bot):

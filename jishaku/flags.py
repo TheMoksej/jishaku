@@ -32,7 +32,6 @@ class Flag:
     name: str
     flag_type: type
     default: typing.Callable = None
-    handler: typing.Callable = None
     override: typing.Any = None
 
     def resolve_raw(self, flags):  # pylint: disable=too-many-return-statements
@@ -128,13 +127,13 @@ class Flags(metaclass=FlagMeta):  # pylint: disable=too-few-public-methods
     """
 
     # Flag to indicate the Jishaku base command group should be hidden
-    HIDE: bool
+    HIDE: bool = True
 
     # Flag to indicate that retention mode for REPL should be enabled by default
     RETAIN: bool
 
     # Flag to indicate that meta variables in REPL should not be prefixed with an underscore
-    NO_UNDERSCORE: bool
+    NO_UNDERSCORE: bool = True
 
     # The scope prefix, i.e. the prefix that appears before Jishaku's builtin variables in REPL sessions.
     # It is recommended that you set this programatically.

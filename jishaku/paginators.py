@@ -87,6 +87,8 @@ class WrappedPaginator(commands.Paginator):
                         f" delimiters: {self.wrap_on}"
                     )
 
+                super().add_line(line[0:true_max_size - 1])
+                line = line[true_max_size - 1:]
         super().add_line(line, empty=empty)
 
 
