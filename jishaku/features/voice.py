@@ -71,7 +71,7 @@ class VoiceFeature(Feature):
             return await ctx.send("The voice client in this guild is not playing anything.")
 
     @Feature.Command(parent="jsk", name="voice", aliases=["vc"],
-                     invoke_without_command=True, ignore_extra=False, slash_command=False)
+                     invoke_without_command=True, ignore_extra=False)
     async def jsk_voice(self, ctx: commands.Context):
         """
         Voice-related commands.

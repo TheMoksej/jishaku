@@ -11,6 +11,7 @@ The jishaku Python evaluation/execution commands.
 
 """
 
+import inspect
 import io
 
 import discord
@@ -22,7 +23,7 @@ from jishaku.features.baseclass import Feature
 from jishaku.flags import Flags
 from jishaku.functools import AsyncSender
 from jishaku.paginators import PaginatorInterface, WrappedPaginator, use_file_check
-from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, disassemble, get_var_dict_from_ctx
+from jishaku.repl import AsyncCodeExecutor, Scope, all_inspections, create_tree, disassemble, get_var_dict_from_ctx
 
 
 class PythonFeature(Feature):
@@ -105,7 +106,10 @@ class PythonFeature(Feature):
             if result.strip() == '':
                 result = "\u200b"
 
-            return await ctx.send(result.replace(self.bot.http.token, "[token omitted]"))
+            return await ctx.send(
+                result.replace(self.bot.http.token, "[token omitted]"),
+                allowed_mentions=discord.AllowedMentions.none()
+            )
 
         if use_file_check(ctx, len(result)):  # File "full content" preview limit
             # Discord's desktop and web client now supports an interactive file content
@@ -154,7 +158,7 @@ class PythonFeature(Feature):
             scope.clear_intersection(arg_dict)
 
     @Feature.Command(parent="jsk", name="py_inspect", aliases=["pyi", "python_inspect", "pythoninspect"])
-    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):  # pylint: disable=too-many-locals
+    async def jsk_python_inspect(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Evaluation of Python code with inspect information.
         """
@@ -180,6 +184,11 @@ class PythonFeature(Feature):
 
                         for name, res in all_inspections(result):
                             lines.append(f"{name:16.16} :: {res}")
+
+                        docstring = (inspect.getdoc(result) or '').strip()
+
+                        if docstring:
+                            lines.append(f"\n=== Help ===\n\n{docstring}")
 
                         text = "\n".join(lines)
 
@@ -221,3 +230,17 @@ class PythonFeature(Feature):
 
                 interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
                 await interface.send_to(ctx)
+
+    @Feature.Command(parent="jsk", name="ast")
+    async def jsk_ast(self, ctx: commands.Context, *, argument: codeblock_converter):
+        """
+        Disassemble Python code into AST.
+        """
+
+        async with ReplResponseReactor(ctx.message):
+            text = create_tree(argument.content, use_ansi=Flags.use_ansi(ctx))
+
+            await ctx.send(file=discord.File(
+                filename="ast.ansi",
+                fp=io.BytesIO(text.encode('utf-8'))
+            ))

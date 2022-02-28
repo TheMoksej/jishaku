@@ -178,7 +178,9 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         This automatically creates the response task for you.
         """
 
-        self.message = await destination.send(**self.send_kwargs)
+        self.message = await destination.send(
+            **self.send_kwargs, allowed_mentions=discord.AllowedMentions.none()
+        )
 
         # add the close reaction
         await self.message.add_reaction(self.emojis.close)
@@ -232,7 +234,7 @@ class PaginatorInterface:  # pylint: disable=too-many-instance-attributes
         await asyncio.sleep(1)
         return gathered
 
-    async def wait_loop(self):  # pylint: disable=too-many-branches, too-many-statements
+    async def wait_loop(self):
         """
         Waits on a loop for reactions to the message. This should not be called manually - it is handled by `send_to`.
         """

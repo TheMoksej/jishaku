@@ -41,7 +41,7 @@ else:
     OPTIONAL_FEATURES.insert(0, YouTubeFeature)
 
 
-class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES, name='Devishaku'):
+class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):  # pylint: disable=too-few-public-methods
     """
     The frontend subclass that mixes in to form the final Jishaku cog.
     """

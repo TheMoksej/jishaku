@@ -219,7 +219,9 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         This automatically creates the response task for you.
         """
 
-        self.message = await destination.send(**self.send_kwargs)
+        self.message = await destination.send(
+            **self.send_kwargs, allowed_mentions=discord.AllowedMentions.none()
+        )
 
         self.send_lock.set()
 
@@ -251,7 +253,7 @@ class PaginatorInterface(ui.View):  # pylint: disable=too-many-instance-attribut
         await asyncio.sleep(1)
         return gathered
 
-    async def wait_loop(self):  # pylint: disable=too-many-branches, too-many-statements
+    async def wait_loop(self):
         """
         Waits on a loop for updates to the interface. This should not be called manually - it is handled by `send_to`.
         """

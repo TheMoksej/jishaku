@@ -16,6 +16,7 @@ from discord.ext import commands
 from jishaku.codeblocks import Codeblock, codeblock_converter
 from jishaku.exception_handling import ReplResponseReactor
 from jishaku.features.baseclass import Feature
+from jishaku.flags import Flags
 from jishaku.paginators import PaginatorInterface, WrappedPaginator
 from jishaku.shell import ShellReader
 
@@ -25,7 +26,7 @@ class ShellFeature(Feature):
     Feature containing the shell-related commands
     """
 
-    @Feature.Command(parent="jsk", name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd"])
+    @Feature.Command(parent="jsk", name="shell", aliases=["bash", "sh", "powershell", "ps1", "ps", "cmd", "terminal"])
     async def jsk_shell(self, ctx: commands.Context, *, argument: codeblock_converter):
         """
         Executes statements in the system shell.
@@ -36,7 +37,7 @@ class ShellFeature(Feature):
 
         async with ReplResponseReactor(ctx.message):
             with self.submit(ctx):
-                with ShellReader(argument.content) as reader:
+                with ShellReader(argument.content, escape_ansi=not Flags.use_ansi(ctx)) as reader:
                     prefix = "```" + reader.highlight
 
                     paginator = WrappedPaginator(prefix=prefix, max_size=1975)

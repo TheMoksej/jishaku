@@ -62,7 +62,7 @@ class GuildFeature(Feature):
         self, ctx: commands.Context,
         channel: typing.Union[discord.TextChannel, discord.VoiceChannel],
         *targets: typing.Union[discord.Member, discord.Role]
-    ):  # pylint: disable=too-many-locals, too-many-branches, too-many-statements
+    ):
         """
         Calculates the source of granted or rejected permissions.
 
@@ -89,7 +89,7 @@ class GuildFeature(Feature):
         if member_ids and channel.guild.owner_id in member_ids:
             # Is owner, has all perms
             for key in dict(discord.Permissions.all()).keys():
-                permissions[key] = (True, f"{channel.guild.owner.mention} owns the server")
+                permissions[key] = (True, f"<@{channel.guild.owner_id}> owns the server")
         else:
             # Otherwise, either not a member or not the guild owner, calculate perms manually
             is_administrator = False
@@ -132,21 +132,24 @@ class GuildFeature(Feature):
 
                 role_lookup = {r.id: r for r in roles}
 
+                is_role = lambda o: o.is_role() if discord.version_info >= (2, 0, 0) else o.type == 'role'  # noqa: E731
+                is_member = lambda o: o.is_member() if discord.version_info >= (2, 0, 0) else o.type == 'member'  # noqa: E731
+
                 # Denies are applied BEFORE allows, always
                 # Handle denies
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    if is_role(overwrite) and overwrite.id in role_lookup:
                         self.apply_overwrites(permissions, allow=0, deny=overwrite.deny, name=role_lookup[overwrite.id].name)
 
                 # Handle allows
                 for overwrite in remaining_overwrites:
-                    if overwrite.type == 'role' and overwrite.id in role_lookup:
+                    if is_role(overwrite) and overwrite.id in role_lookup:
                         self.apply_overwrites(permissions, allow=overwrite.allow, deny=0, name=role_lookup[overwrite.id].name)
 
                 if member_ids:
                     # Handle member-specific overwrites
                     for overwrite in remaining_overwrites:
-                        if overwrite.type == 'member' and overwrite.id in member_ids:
+                        if is_member(overwrite) and overwrite.id in member_ids:
                             self.apply_overwrites(permissions, allow=overwrite.allow, deny=overwrite.deny, name=f"{member_ids[overwrite.id].mention}")
                             break
 

@@ -77,7 +77,10 @@ class WrappedPaginator(commands.Paginator):
                     break
 
             if not wrapped:
-                if not self.force_wrap:
+                if self.force_wrap:
+                    super().add_line(line[0:true_max_size - 1])
+                    line = line[true_max_size - 1:]
+                else:
                     raise ValueError(
                         f"Line of length {original_length} had sequence of {len(line)} characters"
                         f" (max is {true_max_size}) that WrappedPaginator could not wrap with"
